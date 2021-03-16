@@ -1,0 +1,19 @@
+steps:
+- name: 'gcr.io/support-tools-299121/graalvm-builder'
+  args: ['./mvnw', 'package', '-Pnative', '-Dquarkus.ssl.native=true']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/slide4vr-healthcheck', '-f', 'src/main/docker/Dockerfile.native-distroless', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/slide4vr-healthcheck']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['run', 'deploy', 'slide4vr-healthcheck',
+  '--image', 'gcr.io/$PROJECT_ID/slide4vr-healthcheck',
+  '--region', 'us-central1',
+  '--platform', 'managed',
+  '--allow-unauthenticated',
+  '--service-account', 'slide2vr-api@slide2vr.iam.gserviceaccount.com'
+  ]
+images:
+- gcr.io/$PROJECT_ID/slide4vr-healthcheck
+options:
+ machineType: 'E2_HIGHCPU_8'
